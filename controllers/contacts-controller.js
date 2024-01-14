@@ -10,7 +10,6 @@ const getAll = async (req, res) => {
     skip,
     limit,
   }).populate("owner", "username email");
-  console.log(result);
   res.json(result);
 };
 
