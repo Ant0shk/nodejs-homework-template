@@ -5,19 +5,17 @@ import "dotenv/config";
 const { JWT_SECRET } = process.env;
 
 const authenticate = async (req, res, next) => {
-  const { authorization = "" } = req.headers; //Щоб уникнути коли у спліт андефайнд (коли невалідний токін без пробілу буде) ставиться пусте по дефолту значення
+  const { authorization = "" } = req.headers; 
   const [bearer, token] = authorization.split(" ");
   if (bearer !== "Bearer") {
     return next(HttpError(401));
-    //   почему тут не throw Error
   }
 
   try {
     const { id } = jwt.verify(token, JWT_SECRET);
     const user = await User.findById(id);
     if (!user || !user.token) {
-      //перевіряємо чи є користувач і чи є в базі токін
-      return next(HttpError(401));
+    return next(HttpError(401));
     }
     req.user = user;
     next();

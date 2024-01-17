@@ -4,12 +4,10 @@ import { ctrlWrapper } from "../decorators/index.js";
 import bcryptjs from "bcryptjs";
 import jwt from "jsonwebtoken";
 import "dotenv/config";
-// import fs from "fs/promises";
+import fs from "fs/promises";
 const { JWT_SECRET } = process.env;
-// console.log(JWT_SECRET);
 import gravatar from "gravatar";
 import Jimp from "jimp";
-// const JWT_SECRET = "cjyPvS7w7sCBSIWHn0ljiOgYQK84Xm2";
 import path from "path";
 const avatarPath = path.resolve("public", "avatars");
 
