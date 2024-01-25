@@ -14,17 +14,9 @@ const messageList = {
   504: "Gateway Timeout",
 };
 
-// ! Функції які приймають статус і месседж
-// ! і повертати помилку з потрібним месенджем і додавати до неї статус.
-// HttpError - з великої, так як вважається функція конструктор.
-
-// Читати так цю строчку message = messageList[status] - якщо
-// меседж не передали, то брати Опис текстовий помилки з ліста вище в залежності від статусу
 const HttpError = (status, message = messageList[status]) => {
-  // create error
   const error = new Error(message);
   console.log("error===>", error);
-  //   add status to error
   error.status = status;
   return error;
 };
