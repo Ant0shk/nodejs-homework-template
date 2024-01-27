@@ -40,6 +40,44 @@ const signup = async (req, res) => {
     .status(201)
     .json({ username: newUser.username, email: newUser.email, avatar });
 };
+const verificationRequest = async (req, res) => {
+  const { verificationToken } = req.params;
+  const user = await User.findOne({ verificationToken });
+  if (!user) {
+    throw HttpError(404, "Not found!");
+  }
+  await User.findOneAndUpdate(
+    { verificationToken },
+    { verificationToken: null, verify: true }
+  );
+  res.status(200).json({
+    message: "Verification successful",
+  });
+};
+
+const reverify = async (req, res) => {
+  const { email } = req.body;
+  const user = await User.findOne({ email });
+  if (!user) {
+    throw HttpError(404, "User with this email not found");
+  }
+  if (user.verify) {
+    throw HttpError(400, "Verification has already been passed");
+  }
+  const verificationToken = nanoid();
+  const newUser = await User.findOneAndUpdate({ email }, { verificationToken });
+  const massage = {
+    userEmail: email,
+    title: "Email ReVerification!",
+    bodyContent: `<a target="_blank" href="${BASE_URL}/users/verify/${verificationToken}">Click here to verify email</a>`,
+  };
+
+  sendEmail(massage);
+
+  res.status(200).json({
+    message: "Verification email sent",
+  });
+};
 
 const signin = async (req, res) => {
   const { email, password } = req.body;
@@ -53,12 +91,11 @@ const signin = async (req, res) => {
     throw HttpError(401, "Email or password invalid");
   }
 
-  const payload = { id: userFormDB._id }; 
-  const token = jwt.sign(payload, JWT_SECRET, { expiresIn: "24h" }); 
+  const payload = { id: userFormDB._id };
+  const token = jwt.sign(payload, JWT_SECRET, { expiresIn: "24h" });
   await User.findByIdAndUpdate(userFormDB._id, { token });
   res.json({ token });
 };
-
 
 const signout = async (req, res) => {
   const { _id } = req.user;
@@ -69,7 +106,7 @@ const signout = async (req, res) => {
 };
 
 const getCurrent = async (req, res) => {
-  const { username, email } = req.user; 
+  const { username, email } = req.user;
   res.json({ username, email });
 };
 
@@ -89,45 +126,6 @@ const updateAvatar = async (req, res) => {
   });
 };
 
-const verificationRequest = async (req, res) => {
-  const { verificationToken } = req.params;
-  const user = await User.findOne({ verificationToken });
-  if (!user) {
-    throw HttpError(404, "Not found!");
-  }
-  await User.findOneAndUpdate({ verificationToken: null, verify: true });
-  res.status(200).json({
-    message: "Verification successful",
-  });
-};
-
-const reverify = async (req, res) => {
-  const { email } = req.body;
-  const user = await User.findOne({ email });
-  if (!user) {
-    throw HttpError(404, "User with this email not found");
-  }
-  if (user.verify) {
-    throw HttpError(400, "Verification has already been passed");
-  }
-  const verificationToken = nanoid();
-  const newUser = await User.findOneAndUpdate(
-    { email },
-    { verificationToken }
-  );
-  const massage = {
-    userEmail: email,
-    title: "Email ReVerification!",
-    bodyContent: `<a target="_blank" href="${BASE_URL}/users/verify/${verificationToken}">Click here to verify email</a>`,
-  };
-
-  sendEmail(massage);
-
-  res.status(200).json({
-    message: "Verification email sent",
-  });
-};
-
 export default {
   signup: ctrlWrapper(signup),
   signin: ctrlWrapper(signin),
@@ -137,3 +135,4 @@ export default {
   verificationRequest: ctrlWrapper(verificationRequest),
   reverify: ctrlWrapper(reverify),
 };
+
