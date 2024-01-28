@@ -12,8 +12,7 @@ const getAll = async (req, res) => {
     skip,
     limit,
   }).populate("owner", "username email");
-  console.log(result);
-  res.json(result);
+ res.json(result);
 };
 
 const getById = async (req, res) => {
@@ -32,7 +31,6 @@ const addContact = async (req, res) => {
   const newContact = await Contact.create({ ...req.body, owner });
   res.status(201).json(newContact);
 };
-
 const updateContactById = async (req, res) => {
   const { contactId } = req.params;
   const { _id: owner } = req.user;

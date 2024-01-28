@@ -18,9 +18,7 @@ const signup = async (req, res) => {
   if (user) {
     throw HttpError(409, "Email already is used");
   }
-
   const hashPassword = await bcryptjs.hash(password, 10);
-
   const newEmail = email.trim().toLowerCase();
   const avatar = `${gravatar.url(newEmail, { s: "80", r: "pg", d: "mp" })}`;
   const verificationToken = nanoid();
@@ -35,10 +33,8 @@ const signup = async (req, res) => {
     title: "Email verification.",
     bodyContent: `<a target="_blank" href="${BASE_URL}/users/verify/${verificationToken}">Click here to verify email</a>`,
   };
-  sendEmail(massage);
-  res
-    .status(201)
-    .json({ username: newUser.username, email: newUser.email, avatar });
+  await sendEmail(massage);
+  res.status(201).json({ username: newUser.username, email: newUser.email, avatar });
 };
 const verificationRequest = async (req, res) => {
   const { verificationToken } = req.params;
@@ -86,13 +82,16 @@ const signin = async (req, res) => {
   if (!userFormDB) {
     throw HttpError(401, "Email or password invalid");
   }
+  if (!userFormDB.verify) {
+    throw HttpError(401, "Email not verify!");
+  }
   const comparePassword = await bcryptjs.compare(password, userFormDB.password);
   if (!comparePassword) {
     throw HttpError(401, "Email or password invalid");
   }
 
   const payload = { id: userFormDB._id };
-  const token = jwt.sign(payload, JWT_SECRET, { expiresIn: "24h" });
+  const token = jwt.sign(payload, JWT_SECRET, { expiresIn: "23h" });
   await User.findByIdAndUpdate(userFormDB._id, { token });
   res.json({ token });
 };
@@ -126,6 +125,7 @@ const updateAvatar = async (req, res) => {
   });
 };
 
+
 export default {
   signup: ctrlWrapper(signup),
   signin: ctrlWrapper(signin),
@@ -135,4 +135,3 @@ export default {
   verificationRequest: ctrlWrapper(verificationRequest),
   reverify: ctrlWrapper(reverify),
 };
-
